@@ -1,5 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-    const Personaje = sequelize.define("Personaje", {
+    const Personaje = sequelize.define("personajes", {
         id: {
             type: Sequelize.BIGINT,
             primaryKey: true,
@@ -11,6 +11,8 @@ module.exports = (sequelize, Sequelize) => {
         poder: {
             type: Sequelize.STRING
         },
+    },{
+        timestamps : false
     });
     return Personaje;
 };
