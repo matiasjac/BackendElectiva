@@ -1,6 +1,8 @@
 const db = require("../models");
 const Personaje = db.Personaje;
 const Op = db.Sequelize.Op;
+const PDFDocument = require('pdfkit'); // para crear el pdf
+
 
 exports.findAll = (req, res) => {
     const nombre = req.query.nombre;
@@ -34,7 +36,7 @@ exports.findOne = (req, res) => {
 exports.create = (req, res) => {
     // Validate request
 
-    const { nombre, poder } = req.body;
+    const { nombre, poder, pelicula } = req.body;
 
     if (!nombre) {
         res.status(400).send({
@@ -44,7 +46,7 @@ exports.create = (req, res) => {
     }
     // creamos el personaje
     const personaje = {
-        nombre, poder
+        nombre, poder, pelicula
     };
     // Guardamos a la base de datos
     Personaje.create(personaje)
@@ -81,10 +83,11 @@ exports.update = (req, res) => {
             if (!personaje) {
                 return res.status(404).send({ message: 'No existe el personaje' });
             }
-            const { nombre, poder } = req.body;
+            const { nombre, poder, pelicula } = req.body;
             // Actualiza los datos del personaje
             personaje.nombre = nombre;
             personaje.poder = poder;
+            personaje.pelicula = pelicula;
             // guardamos los cambios
             personaje.save()
                 .then(data => {
@@ -103,3 +106,34 @@ exports.update = (req, res) => {
         });
 };
 
+exports.descargar = async (req, res) => {
+    res.setHeader('Content-Disposition', 'attachment; filename=reporte.pdf');
+    res.setHeader('Content-Type', 'application/pdf');
+    Personaje.findAll().then(personajes => {
+        const doc = new PDFDocument();
+        doc.pipe(res);
+        doc.fontSize(14).text('Informe de Registros', { align: 'center' }).moveDown();
+        
+        let posY = 100;
+        // columnas del reporte
+        doc.text('Codigo', 50, posY, { columnGap: 15 });
+        doc.text('Nombre', 150, posY);
+        doc.text('Poder', 300, posY);
+        doc.text('Pelicula', 450, posY);
+
+        const margin = 30;
+        personajes.forEach((personaje) => {
+            posY += margin;
+            doc.text(personaje.id, 50, posY, { columnGap: 15 });
+            doc.text(personaje.nombre, 150, posY);
+            doc.text(personaje.poder, 300, posY);
+            doc.text(personaje.pelicula, 450, posY);
+        });
+        doc.end();
+    }).catch(error => {
+        console.error('Error al generar reporte ', error);
+        res.status(500).send({
+            message: `Error al generar el reporte con los registros`
+        });
+    });
+}

@@ -1,5 +1,6 @@
 const express = require("express");
-
+const db = require("./app/models");
+const Personaje = db.Personaje;
 const bodyParser = require("body-parser");
 
 const cors = require("cors");
@@ -36,8 +37,11 @@ require("./app/routes/personaje.routes")(app);
 
 const PORT = process.env.PORT || 9090;
 
-app.listen(PORT, () => {
+const initServer = async () => {
+    await db.sequelize.sync(); // para que cree la base de datos
+    app.listen(PORT, () => {
+        console.log('Servidor corriendo en puerto 9090.');
+    });
+}
 
-    console.log('Servidor corriendo en puerto 9090.');
-
-});
+initServer();

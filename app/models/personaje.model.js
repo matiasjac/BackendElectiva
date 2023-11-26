@@ -11,6 +11,9 @@ module.exports = (sequelize, Sequelize) => {
         poder: {
             type: Sequelize.STRING
         },
+        pelicula: {
+            type: Sequelize.STRING
+        },
     },{
         timestamps : false
     });
